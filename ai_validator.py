@@ -1,18 +1,19 @@
 import json
 import sys
 
-with open("report.json", "r", encoding="utf-8") as f:
-    r = json.load(f)
+path = sys.argv[1] if len(sys.argv) > 1 else "report.json"
 
-rec = (r.get("action") or {}).get("recommendation", "UNKNOWN")
-entropy = (r.get("metrics") or {}).get("entropy_score", 0.0)
-cycle = (r.get("metrics") or {}).get("cycle_index", 0.0)
+with open(path, "r", encoding="utf-8") as f:
+    matrix = json.load(f)
 
-print(f"[AI AGENT] recommendation={rec} entropy_score={entropy:.3f} cycle_index={cycle:.3f}")
+rec = matrix.get("action", {}).get("recommendation", "UNKNOWN")
+entropy = matrix.get("metrics", {}).get("entropy_score", 0.0)
+
+print(f"[AI AGENT] entropy_score={entropy} recommendation={rec}")
 
 if rec == "BLOCK":
-    print("[AI AGENT] BLOCK: structural instability detected. Merge should be blocked.")
-    sys.exit(1)
+    print("[AI AGENT] BLOCK -> failing workflow")
+    sys.exit(3)
 
-print("[AI AGENT] OK: merge can proceed.")
+print("[AI AGENT] OK -> passing workflow")
 sys.exit(0)
