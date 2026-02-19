@@ -3,6 +3,7 @@ name: V-CORE Structural Check
 on:
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   analyze:
@@ -36,4 +37,3 @@ jobs:
       - name: AI Gate (fail if BLOCK)
         run: |
           python ai_validator.py
-          
