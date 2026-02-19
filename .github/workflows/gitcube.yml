@@ -2,7 +2,7 @@ name: V-CORE Structural Check
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
@@ -20,15 +20,15 @@ jobs:
       - name: Run GitCube (JSON)
         run: |
           python cli.py analyze . --json > report.json
+          echo "=== report.json ==="
           cat report.json
 
       - name: AI Gate (fail if BLOCK)
         run: |
-          python ai_validator.py report.json
+          python ai_validator.py
 
       - name: Upload artifact (report.json)
         uses: actions/upload-artifact@v4
         with:
           name: v-core-report
           path: report.json
-          
