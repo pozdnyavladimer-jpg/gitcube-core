@@ -3,8 +3,8 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from .analyze import analyze_repo_dict, analyze_repo_text
-from .report import print_report_json
+from analyze import analyze_repo_dict, analyze_repo_text
+from report import print_report_json
 
 
 def main() -> None:
