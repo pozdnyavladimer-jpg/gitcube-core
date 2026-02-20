@@ -1,6 +1,6 @@
 # gitcube-core
 
-![Demo run](docs/img/demo_run.png)
+![Demo run](demo_run.png)
 
 **Structural Stability & Entropy Analyzer for Git Repositories**
 
