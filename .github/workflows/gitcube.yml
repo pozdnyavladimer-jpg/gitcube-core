@@ -2,7 +2,7 @@ name: V-CORE Structural Check
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 jobs:
@@ -17,15 +17,20 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install (editable)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
       - name: Run GitCube (JSON)
         run: |
-          python cli.py analyze . --json > report.json
+          gitcube analyze . --json > report.json
           echo "=== report.json ==="
           cat report.json
 
       - name: AI Gate (fail if BLOCK)
         run: |
-          python ai_validator.py
+          python -m gitcube.ai_validator
 
       - name: Upload artifact (report.json)
         uses: actions/upload-artifact@v4
