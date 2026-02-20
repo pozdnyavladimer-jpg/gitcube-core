@@ -1,0 +1,2 @@
+[console_scripts]
+gitcube = gitcube.cli:main

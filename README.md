@@ -1,11 +1,18 @@
 # gitcube-core
 
-![Demo run](demo_run.png)
+![Demo run](docs/img/demo_run.png)
 
 **Structural Stability & Entropy Analyzer for Git Repositories**
 
 GitCube Core turns a repo into a **dependency structure** and computes a compact set of **stability / entropy** signals.  
 Goal: detect architectural “instability build-up” early and provide an explainable merge gate: **ALLOW / WARN / BLOCK**.
+
+> **Navigator logic ("Shadow is Fuel")**
+>
+> We do **not** try to eliminate change/entropy. Change is how software evolves.
+> GitCube behaves like a **navigator**:
+> - **WARN** = healthy working chaos (allowed, but visible)
+> - **BLOCK** = structural danger (likely to tear the system)
 
 ## Quick start
 
@@ -26,6 +33,21 @@ gitcube analyze .
 gitcube analyze . --json > gitcube_report.json
 ```
 
+### 2c) Dynamic baseline (adaptive thresholds)
+GitCube can learn what's *normal* for your repo (rolling baseline).
+
+```bash
+# writes/updates .gitcube/baseline.json
+gitcube analyze . --json --update-baseline > gitcube_report.json
+```
+
+Then future runs compare against that baseline.
+
+If you want to disable baselining and use size-based heuristics only:
+```bash
+gitcube analyze . --json --no-baseline > gitcube_report.json
+```
+
 ### 3) Generate a tiny demo repo (with a cycle) and analyze it
 ```bash
 python examples/demo_repo_generator.py
@@ -38,10 +60,32 @@ gitcube analyze demo_repo
   - `EntropyScore` (0..1)
   - `CycleIndex`
   - `ChurnAccel` (placeholder; becomes real when git history is enabled)
-- Recommendation:
-  - `ALLOW` (<0.40)
-  - `WARN` (0.40..0.65)
-  - `BLOCK` (>=0.65) → **MERU GATE WARNING**
+- Recommendation: `ALLOW` / `WARN` / `BLOCK`
+
+### Structural DNA (Topological Alphabet)
+Every report contains a compact **DNA signature** for quick review in PRs:
+
+Example:
+```
+G0 P1 C0 D0 S0 R0 K1
+```
+
+Symbols (levels: 0 OK, 1 WARN, 2 BLOCK):
+- **G**: gate verdict (ALLOW/WARN/BLOCK)
+- **P**: pressure (structural entropy)
+- **C**: cycles (cyclic mass proxy)
+- **D**: dependency density
+- **S**: drift (reserved, v0.1 uses 0)
+- **R**: risk lead (reserved, v0.1 may be 0)
+- **K**: scale bucket (repo size)
+
+### JSON output (machine interface)
+`--json` emits a single JSON document with:
+- `metrics`: numeric signals
+- `thresholds`: per-metric WARN/BLOCK thresholds (adaptive when baseline exists)
+- `action`: recommendation + reason
+- `dna`: signature + per-symbol details
+- `baseline`: where baseline file is and whether it was updated
 
 ## Repository structure
 - `src/gitcube/` core library
@@ -49,42 +93,15 @@ gitcube analyze demo_repo
 - `examples/` minimal demos
 - `docs/` concept + metrics
 
+## Case study (MVP)
+
+### Apache Airflow (healthy reference)
+When run against Apache Airflow, GitCube should typically report **ALLOW** with low structural pressure.
+This demonstrates low false-positives: the sensor respects mature architecture.
+
+### Synthetic chaos repo (controlled failure)
+Use `examples/demo_repo_generator.py` to generate a small repo with deliberate cyclic imports.
+GitCube should report **WARN/BLOCK** depending on the generated severity.
+
 ## License
 AGPL-3.0
-## Structural Contrast Demonstration
-
-GitCube is a measurement instrument, not an alarm generator.
-To validate signal integrity, we tested it on two opposite scenarios:
-
-### 1️⃣ Real-World Mature Architecture
-* **Project:** Apache Airflow
-* **Type:** Large-scale production data platform
-* **Scale:** 6,669 Python files, 3,332 modules, 20,037 dependency edges
-
-**Result:**
-`entropy_score: 0.0128` | `cycle_index: 0.0144` | `recommendation: ALLOW`
-
-**Interpretation:** Minimal cyclic dependency clusters. Low structural entropy. Stable modular layering. No artificial warnings triggered. Airflow serves as a structural baseline for disciplined Python architecture.
-
----
-
-### 2️⃣ Synthetic Chaos Repository
-* **Project:** Generated via `examples/demo_repo_generator.py`
-* **Type:** Artificial monolith with dense cyclic dependencies
-* **Generated to simulate:** Cross-module circular imports, Layer violations, Strongly connected dependency clusters.
-
-**Result:**
-`entropy_score: HIGH` | `cycle_index: HIGH` | `recommendation: BLOCK`
-
-**Interpretation:** Large strongly connected components. High dependency density. Structural instability detected. Automatic BLOCK triggered.
-
----
-
-### Contrast Summary
-| Project | Scale | Entropy | Cycle Index | Verdict |
-| :--- | :--- | :--- | :--- | :--- |
-| **Apache Airflow** | 6,669 files | 0.0128 | 0.0144 | **ALLOW** |
-| **Synthetic Chaos Repo** | Generated | High | High | **BLOCK** |
-
-**Key Takeaway:** GitCube does not penalize scale. It detects structural degradation. 
-Healthy architecture → ALLOW. Topological collapse → BLOCK. No drama. No false alarms. Only measurable structure.
