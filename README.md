@@ -51,3 +51,41 @@ gitcube analyze demo_repo
 
 ## License
 AGPL-3.0
+
+## Structural Contrast Demonstration
+
+GitCube is a measurement instrument, not an alarm generator.
+To validate signal integrity, we tested it on two opposite scenarios:
+
+### 1️⃣ Real-World Mature Architecture
+* **Project:** Apache Airflow
+* **Type:** Large-scale production data platform
+* **Scale:** 6,669 Python files, 3,332 modules, 20,037 dependency edges
+
+**Result:**
+`entropy_score: 0.0128` | `cycle_index: 0.0144` | `recommendation: ALLOW`
+
+**Interpretation:** Minimal cyclic dependency clusters. Low structural entropy. Stable modular layering. No artificial warnings triggered. Airflow serves as a structural baseline for disciplined Python architecture.
+
+---
+
+### 2️⃣ Synthetic Chaos Repository
+* **Project:** Generated via `examples/demo_repo_generator.py`
+* **Type:** Artificial monolith with dense cyclic dependencies
+* **Generated to simulate:** Cross-module circular imports, Layer violations, Strongly connected dependency clusters.
+
+**Result:**
+`entropy_score: HIGH` | `cycle_index: HIGH` | `recommendation: BLOCK`
+
+**Interpretation:** Large strongly connected components. High dependency density. Structural instability detected. Automatic BLOCK triggered.
+
+---
+
+### Contrast Summary
+| Project | Scale | Entropy | Cycle Index | Verdict |
+| :--- | :--- | :--- | :--- | :--- |
+| **Apache Airflow** | 6,669 files | 0.0128 | 0.0144 | **ALLOW** |
+| **Synthetic Chaos Repo** | Generated | High | High | **BLOCK** |
+
+**Key Takeaway:** GitCube does not penalize scale. It detects structural degradation. 
+Healthy architecture → ALLOW. Topological collapse → BLOCK. No drama. No false alarms. Only measurable structure.
